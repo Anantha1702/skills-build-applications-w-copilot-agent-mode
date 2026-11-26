@@ -1,4 +1,34 @@
-import { CapabilityCard } from './CapabilityCard.js';
+import { useApiResource } from '../api/useApiResource.js';
+
+type LeaderboardEntry = {
+  teamName: string;
+  totalPoints: number;
+  rank: number;
+};
+
 export default function Leaderboard() {
-  return <CapabilityCard title="Leaderboard" description="Compare team point totals." />;
+  const { data, loading, error } = useApiResource<{ leaderboard: LeaderboardEntry[] }>('/api/leaderboard');
+  const entries = data?.leaderboard ?? [];
+
+  return (
+    <section className="card">
+      <div className="card-body">
+        <h2 className="h4">Leaderboard</h2>
+        <p>Compare team point totals.</p>
+        {loading && <p role="status">Loading leaderboard...</p>}
+        {error && <p role="alert">Unable to load leaderboard: {error}</p>}
+        {!loading && !error && entries.length === 0 && <p>No leaderboard rankings yet.</p>}
+        {!loading && !error && entries.length > 0 && (
+          <ol className="list-group list-group-numbered">
+            {entries.map((entry) => (
+              <li className="list-group-item d-flex justify-content-between" key={`${entry.rank}-${entry.teamName}`}>
+                <span>{entry.teamName} (rank {entry.rank})</span>
+                <strong>{entry.totalPoints} points</strong>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
+    </section>
+  );
 }
